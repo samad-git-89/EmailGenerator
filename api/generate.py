@@ -2,17 +2,18 @@ from http.server import BaseHTTPRequestHandler
 import json
 import os
 from langchain.prompts import PromptTemplate
-from langchain_anthropic import ChatAnthropic
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Hosted LLM instead of a local CTransformers model file.
 # Vercel functions have no room/time to load a multi-GB local model,
-# so we call Claude's API instead. Set ANTHROPIC_API_KEY in your
-# Vercel project's Environment Variables settings.
-llm = ChatAnthropic(
-    model="claude-sonnet-4-6",
+# so we call Google's Gemini API instead. Get a key at
+# https://aistudio.google.com/apikey (has a free tier) and set
+# GOOGLE_API_KEY in your Vercel project's Environment Variables settings.
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
     temperature=0.01,
-    max_tokens=256,
-    api_key=os.environ.get("ANTHROPIC_API_KEY"),
+    max_output_tokens=256,
+    google_api_key=os.environ.get("GOOGLE_API_KEY"),
 )
 
 template = """Write an email with {style} style and includes topic: {email_topic}.
