@@ -30,7 +30,7 @@ def getLLMResponse(form_input, email_sender, email_recipient, email_style):
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=formatted_prompt,
-        config={"temperature": 0.01, "max_output_tokens": 1024},
+        config={"temperature": 0.01, "max_output_tokens": 3000},
     )
     return response.text
 
