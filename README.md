@@ -1,0 +1,2 @@
+# EmailGenerator
+Email Automation App
