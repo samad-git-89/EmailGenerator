@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Generate Emails 📧</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 1.8rem; }
+  textarea, input, select { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; font-size: 1rem; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  button { padding: 12px 20px; font-size: 1rem; cursor: pointer; background: #FF4B4B; color: white; border: none; border-radius: 6px; }
+  button:disabled { background: #ccc; cursor: not-allowed; }
+  pre { white-space: pre-wrap; background: #f5f5f5; padding: 16px; border-radius: 6px; margin-top: 20px; }
+</style>
+</head>
+<body>
+  <h1>Generate Emails 📧</h1>
+
+  <label for="topic">Enter the email topic</label>
+  <textarea id="topic" rows="8" placeholder="What should the email be about?"></textarea>
+
+  <div class="row">
+    <div>
+      <label for="sender">Sender Name</label>
+      <input id="sender" type="text" />
+    </div>
+    <div>
+      <label for="recipient">Recipient Name</label>
+      <input id="recipient" type="text" />
+    </div>
+    <div>
+      <label for="style">Writing Style</label>
+      <select id="style">
+        <option>Formal</option>
+        <option>Appreciating</option>
+        <option>Not Satisfied</option>
+        <option>Neutral</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="submitBtn" onclick="generateEmail()">Generate</button>
+
+  <pre id="result" style="display:none;"></pre>
+
+  <script>
+    async function generateEmail() {
+      const btn = document.getElementById('submitBtn');
+      const resultEl = document.getElementById('result');
+      const topic = document.getElementById('topic').value;
+
+      if (!topic.trim()) {
+        alert('Please enter an email topic.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      resultEl.style.display = 'block';
+      resultEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email_topic: topic,
+            sender: document.getElementById('sender').value,
+            recipient: document.getElementById('recipient').value,
+            style: document.getElementById('style').value
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+
+        resultEl.textContent = data.email;
+      } catch (err) {
+        resultEl.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+      }
+    }
+  </script>
+</body>
+</html>
