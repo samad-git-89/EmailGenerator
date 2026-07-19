@@ -1,22 +1,16 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
-from langchain.prompts import PromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
+from google import genai
 
 # Hosted LLM instead of a local CTransformers model file.
 # Vercel functions have no room/time to load a multi-GB local model,
-# so we call Google's Gemini API instead. Get a key at
+# so we call Google's Gemini API directly instead. Get a key at
 # https://aistudio.google.com/apikey (has a free tier) and set
 # GOOGLE_API_KEY in your Vercel project's Environment Variables settings.
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0.01,
-    max_output_tokens=256,
-    google_api_key=os.environ.get("GOOGLE_API_KEY"),
-)
+client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
 
-template = """Write an email with {style} style and includes topic: {email_topic}.
+TEMPLATE = """Write an email with {style} style and includes topic: {email_topic}.
 
 Sender: {sender}
 Recipient: {recipient}
@@ -24,22 +18,20 @@ Recipient: {recipient}
 Email Text:
 """
 
-prompt = PromptTemplate(
-    input_variables=["style", "email_topic", "sender", "recipient"],
-    template=template,
-)
-
 
 def getLLMResponse(form_input, email_sender, email_recipient, email_style):
-    formatted_prompt = prompt.format(
+    formatted_prompt = TEMPLATE.format(
         email_topic=form_input,
         sender=email_sender,
         recipient=email_recipient,
         style=email_style,
     )
-    response = llm.invoke(formatted_prompt)
-    # ChatAnthropic returns a message object; plain string models return str
-    return response.content if hasattr(response, "content") else str(response)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=formatted_prompt,
+        config={"temperature": 0.01, "max_output_tokens": 256},
+    )
+    return response.text
 
 
 class handler(BaseHTTPRequestHandler):
